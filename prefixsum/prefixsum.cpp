@@ -1,42 +1,28 @@
-#include <stdio.h>
 #include <iostream>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include "omploop.hpp"
+#include <cmath>
+#include <omp.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  void generatePrefixSumData (int* arr, size_t n);
-  void checkPrefixSumResult (int* arr, size_t n);
-#ifdef __cplusplus
-}
-#endif
+using namespace std;
 
+int main()
+{
+    
+     const int size = 256;
+    const double step = (2.0 * M_PI) / static_cast<double>(size); 
+    double* sinTable = new double[size];
+    double sum = 0.0;
 
-int main (int argc, char* argv[]) {
-  if (argc < 3) {
-    std::cerr<<"Usage: "<<argv[0]<<" <n> <nbthreads>"<<std::endl;
-    return -1;
-  }
-
-  
-  int n = atoi(argv[1]);
-
-  int * arr = new int [n];
-  generatePrefixSumData (arr, n);
-
-  int * pr = new int [n+1];
-
-  //insert prefix sum code here
-
-  
-  
-  checkPrefixSumResult(pr, n);
-
-  delete[] arr;
-
-  return 0;
+    
+    #pragma omp parallel for reduction(+:sum)    
+    for (int n = 0; n < size; n++)
+    {
+        sinTable[n] = std::sin( static_cast<double>(n) * step);      
+        sinTable[n] = sinTable[n] * 2.0;  
+        sum += sinTable[n];  
+    }
+    
+    //print
+    cout << "Sum: " << sum << endl;
+    delete[] sinTable;
+    return 0;
 }
